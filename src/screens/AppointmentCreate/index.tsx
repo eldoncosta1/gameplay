@@ -1,84 +1,154 @@
-import React from 'react';
-import { ImageBackground, Text, View, FlatList } from 'react-native';
-import { Fontisto } from '@expo/vector-icons';
-import { BorderlessButton } from 'react-native-gesture-handler';
+import React, { useState } from 'react';
+import { RectButton } from 'react-native-gesture-handler';
+import { Feather } from '@expo/vector-icons';
 
-import { Background } from '../../components/Background';
+import {
+  Text,
+  View,
+  Platform,
+  ScrollView,
+  KeyboardAvoidingView
+} from 'react-native';
+
+import { ModalView } from '../../components/ModalView';
+import { CategorySelect } from '../../components/CategorySelect';
 import { Header } from '../../components/Header';
-import { ListHeader } from '../../components/ListHeader';
-import { Member } from '../../components/Member';
-import { ListDivider } from '../../components/ListDivider';
-import { ButtonIcon } from '../../components/ButtonIcon';
+import { GuildIcon } from '../../components/GuildIcon';
+import { SmallInput } from '../../components/SmallInput';
+import { TextArea } from '../../components/TextArea';
+import { Button } from '../../components/Button';
+import { Guilds } from '../../components/Guilds';
 
 import { theme } from '../../global/styles/theme';
 import { styles } from './styles';
 
-import BannerImg from '../../assets/banner.png';
+type GuildProps = {
+  id: string;
+  name: string;
+  icon: string | null;
+  owner: boolean;
+}
 
 export function AppointmentCreate() {
-  const members = [
-    {
-      id: '1',
-      username: 'Eldon',
-      avatar_url: 'https://github.com/eldoncosta1.png',
-      status: 'online'
-    },
-    {
-      id: '2',
-      username: 'Oliver',
-      avatar_url: 'https://github.com/eldoncosta1.png',
-      status: 'offline'
-    }
-  ]
+  const [category, setCategory] = useState('');
+  const [openGuildsModal, setOpenGuildsModal] = useState(false);
+  const [guild, setGuild] = useState<GuildProps>({} as GuildProps);
+
+  function handleOpenGuilds() {
+    setOpenGuildsModal(true);
+  }
+
+  function handleGuildSelect(guildSelected: GuildProps) {
+    setGuild(guildSelected);
+    setOpenGuildsModal(false);
+  }
 
   return (
-    <Background>
-      <Header
-        title="Detalhes"
-        action={
-          <BorderlessButton>
-            <Fontisto
-              name="share"
-              size={24}
-              color={theme.colors.primary}
-            />
-          </BorderlessButton>
-        }
-      />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      {/* <Background> */}
+      <ScrollView>
+        <Header
+          title="Agendar partida"
+        />
 
-      <ImageBackground
-        source={BannerImg}
-        style={styles.banner}
-      >
-        <View style={styles.bannerContent}>
-          <Text style={styles.title} >
-            Lendários
-          </Text>
+        <Text style={[styles.label, styles.titlePage]}>
+          Categoria
+        </Text>
 
-          <Text style={styles.subtitle}>
-            É hoje que vamos chegar ao challenger sem perder uma partida da md10
-          </Text>
+        <CategorySelect
+          hasCheckBox
+          setCategory={setCategory}
+          categorySelected={category}
+        />
+
+        <View style={styles.form}>
+          <RectButton onPress={handleOpenGuilds}>
+            <View style={styles.select}>
+              {
+                guild.icon
+                  ? <GuildIcon />
+                  : <View style={styles.image} />
+              }
+
+              <View style={styles.selectBody}>
+                <Text style={styles.label}>
+                  {
+                    guild.name
+                      ? guild.name
+                      : 'Selecione um servidor'
+                  }
+                </Text>
+              </View>
+
+              <Feather
+                name="chevron-right"
+                color={theme.colors.heading}
+                size={18}
+              />
+
+            </View>
+          </RectButton>
+
+          <View style={styles.field}>
+            <View>
+              <Text style={styles.label}>
+                Dia e mês
+              </Text>
+
+              <View style={styles.column}>
+                <SmallInput maxLength={2} />
+                <Text style={styles.divider}>
+                  /
+                </Text>
+                <SmallInput maxLength={2} />
+              </View>
+            </View>
+
+            <View>
+              <Text style={styles.label}>
+                Hora e minuto
+              </Text>
+
+              <View style={styles.column}>
+                <SmallInput maxLength={2} />
+                <Text style={styles.divider}>
+                  :
+                </Text>
+                <SmallInput maxLength={2} />
+              </View>
+            </View>
+          </View>
+
+          <View style={[styles.field, { marginBottom: 12 }]}>
+            <Text style={styles.label}>
+              Descrição
+            </Text>
+
+            <Text style={styles.textLimit}>
+              Max 100 caracteres
+            </Text>
+          </View>
+          <TextArea
+            multiline
+            maxLength={100}
+            numberOfLines={5}
+            autoCorrect={false}
+          />
+
+          <View style={styles.footer}>
+            <Button title="Agendar" />
+          </View>
         </View>
-      </ImageBackground>
+      </ScrollView>
 
-      <ListHeader
-        title="Jogadores"
-        subtitle="Total 3"
-      />
+      <ModalView visible={openGuildsModal}>
+        <Guilds handleGuildSelect={handleGuildSelect} />
+      </ModalView>
 
-      <FlatList
-        data={members}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <Member data={item} />
-        )}
-        ItemSeparatorComponent={() => <ListDivider />}
-        style={styles.members}
-      />
-
-      <View style={styles.footer}>
-        <ButtonIcon title="Entrar na partida" />
-      </View>
-    </Background>
+      {/* </Background> */}
+    </KeyboardAvoidingView>
   );
 }
